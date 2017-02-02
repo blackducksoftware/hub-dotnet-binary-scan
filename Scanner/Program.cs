@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using System.Security.Cryptography;
-using System.Reflection;
 using System.IO;
+using System.Reflection;
+using System.Security.Cryptography;
 
 namespace Scanner
 {
@@ -32,7 +27,6 @@ namespace Scanner
                 //Load the assembly to get its path
                 Assembly refAssembly = Assembly.Load(refAssemblyName);
                 string path =refAssembly.Location.ToString();
-
  
                 Console.Write(refAssembly.FullName + " " + refAssemblyName.GetPublicKey() + " -> ");
                 Console.Write(path + " [" );
