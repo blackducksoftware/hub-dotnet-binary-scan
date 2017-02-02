@@ -24,20 +24,26 @@ namespace Scanner
             foreach (var refAssemblyName in targetAssembly.GetReferencedAssemblies())
             {
 
-                //Load the assembly to get its path
-                Assembly refAssembly = Assembly.Load(refAssemblyName);
-                string path =refAssembly.Location.ToString();
- 
-                Console.Write(refAssembly.FullName + " " + refAssemblyName.GetPublicKey() + " -> ");
-                Console.Write(path + " [" );
+				//Load the assembly to get its path
+				try
+				{
+					Assembly refAssembly = Assembly.Load(refAssemblyName);
+					string path = refAssembly.Location.ToString();
 
-                if (!string.IsNullOrWhiteSpace(path))
-                {
-                    string sha1 = computeSha1(path);
-                    Console.Write(sha1);
-                }
-                Console.WriteLine("]");
+					Console.Write(refAssembly.FullName + " " + refAssemblyName.GetPublicKey() + " -> ");
+					Console.Write(path + " [");
 
+					if (!string.IsNullOrWhiteSpace(path))
+					{
+						string sha1 = computeSha1(path);
+						Console.Write(sha1);
+					}
+					Console.WriteLine("]");
+				}
+				catch (FileNotFoundException e)
+				{
+					Console.Error.WriteLine(e.Message);
+				}
 
             }
             Console.ReadKey();
