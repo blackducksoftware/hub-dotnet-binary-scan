@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scanner", "Scanner\Scanner.csproj", "{56EE2567-E617-400B-9DB4-FAC41A6935BB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{80A47BE1-22F6-480B-8021-C8A731BF2F63} = {80A47BE1-22F6-480B-8021-C8A731BF2F63}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScannerJson", "ScannerJson\ScannerJson.csproj", "{80A47BE1-22F6-480B-8021-C8A731BF2F63}"
 EndProject

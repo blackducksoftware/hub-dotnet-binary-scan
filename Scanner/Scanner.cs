@@ -2,7 +2,6 @@
 using System.IO;
 using System.Reflection;
 using System.Security.Cryptography;
-using System.Collections.Generic;
 
 namespace Blackduck.Hub
 {
@@ -80,6 +79,9 @@ namespace Blackduck.Hub
                 return Convert.ToBase64String(hash);
             }
         }
+
+  
+       
     }
 
   
