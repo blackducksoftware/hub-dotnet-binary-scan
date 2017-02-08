@@ -2,7 +2,7 @@
 using System.IO;
 using System.Reflection;
 using System.Security.Cryptography;
-
+using System.Collections.Generic;
 
 namespace Blackduck.Hub
 {
@@ -12,16 +12,31 @@ namespace Blackduck.Hub
 
         static void Main(string[] args)
         {
+
+
             if (args.Length < 1 || string.IsNullOrWhiteSpace(args[0]))
             {
                 Console.WriteLine("Argument required. Whaddaya want me to scan?");
                 return;
             }
+
+
             string target = args[0];
             Console.WriteLine("Scanning " + target + "...");
+
+			ScannerJsonBuilder builder = ScannerJsonBuilder.NewInstance();
+
+
+
             Assembly targetAssembly = Assembly.LoadFile(target);
             Console.WriteLine(targetAssembly.FullName+" "+targetAssembly.GetName().GetPublicKey());
-            //Retrieve the referenced assembly
+			//Retrieve the referenced assembly
+
+			builder.ProjectName = targetAssembly.GetName().Name;
+			builder.Release = targetAssembly.GetName().Version.ToString();
+
+			builder.AddDirectory(targetAssembly.GetName().Name, new FileInfo(target).FullName);
+
             foreach (var refAssemblyName in targetAssembly.GetReferencedAssemblies())
             {
 
@@ -31,15 +46,14 @@ namespace Blackduck.Hub
 					Assembly refAssembly = Assembly.Load(refAssemblyName);
 					string path = refAssembly.Location.ToString();
 
-					Console.Write(refAssembly.FullName + " " + refAssemblyName.GetPublicKey() + " -> ");
-					Console.Write(path + " [");
+					Console.WriteLine(refAssembly.FullName + " " + refAssemblyName.GetPublicKey());
 
 					if (!string.IsNullOrWhiteSpace(path))
 					{
 						string sha1 = computeSha1(path);
-						Console.Write(sha1);
+						builder.AddFile(refAssembly.FullName, path, new FileInfo(path).Length, sha1);
 					}
-					Console.WriteLine("]");
+
 				}
 				catch (FileNotFoundException e)
 				{
@@ -47,7 +61,15 @@ namespace Blackduck.Hub
 				}
 
             }
-            Console.ReadKey();
+
+
+			if (args.Length < 2)
+				builder.Write(Console.Out);
+			else using (var fileWriter = new StreamWriter(args[1], false))
+				{
+					builder.Write(fileWriter);
+				}
+				
         }
 
         private static String computeSha1(String path)

@@ -12,9 +12,9 @@ namespace Blackduck.Hub
 		public Type NodeType {get; private set;}
 		public String Name {get; private set;}
 		public String Path{get; private set;}
-		public long Size {get; private set;}
-		public String ArchiveUri{get;private set;}
-		public Signature[] Signatures { get; private set; }
+		public long Size { get; private set; } = 0;
+		public String ArchiveUri { get; private set; } = "";
+		public Signature[] Signatures { get; private set; } = new Signature[] { };
 
 		private Node ()
 		{
