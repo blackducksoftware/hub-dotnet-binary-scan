@@ -13,7 +13,6 @@ namespace Blackduck.Hub
 			using (StreamWriter sw = new StreamWriter(outputStream))
 			using (JsonWriter writer = new JsonTextWriter(sw))
 			{
-				//writer.WriteStartObject();
 				writer.WriteStartArray();
 				foreach (Node node in nodes)
 				{
@@ -37,7 +36,6 @@ namespace Blackduck.Hub
 						jsonNode.Add(new JProperty("parentId", node.Parent.Id));
 				}
 				writer.WriteEndArray();
-				//writer.WriteEndObject();
 			}
 
 		}
