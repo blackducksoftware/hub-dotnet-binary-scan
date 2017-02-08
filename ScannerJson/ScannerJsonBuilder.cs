@@ -21,9 +21,10 @@ namespace Blackduck.Hub
 			return new ScannerJsonBuilder();
 		}
 
-		public String ScannerVersion { private get; set; } = "";
+		public String ScannerVersion { private get; set; } = "0.0.0.0";
 		public String SignatureVersion { private get; set; } = "7.0.0";
-		public String ProjectName { private get; set; }
+        public String HostName { private get; set; } = System.Environment.MachineName;
+        public String ProjectName { private get; set; }
 		public String Release { private get; set; }
 
 		private Node getCurrentDir()
@@ -102,26 +103,37 @@ namespace Blackduck.Hub
 
 				}
 				writer.WriteEndArray();
-
-				writer.WritePropertyName("signatureVersion");
-				writer.WriteValue(this.SignatureVersion);
-
-				writer.WritePropertyName("scannerVersion");
-				writer.WriteValue(this.ScannerVersion);
-
-				if (this.ProjectName != null)
-				{
-					writer.WritePropertyName("project");
-					writer.WriteValue(this.ProjectName);
-				}
-
-				if (this.Release != null)
-				{
-					writer.WritePropertyName("release");
-					writer.WriteValue(this.Release);
-				}
+                writeMiscellaneousProperties(writer);
 			}
 
 		}
+
+        private void writeMiscellaneousProperties(JsonWriter writer)
+        {
+            writer.WritePropertyName("signatureVersion");
+            writer.WriteValue(this.SignatureVersion);
+
+            writer.WritePropertyName("scannerVersion");
+            writer.WriteValue(this.ScannerVersion);
+
+            writer.WritePropertyName("hostName");
+            writer.WriteValue(this.HostName);
+
+            writer.WritePropertyName("ownerEntityKeyToken");
+            writer.WriteValue($"SN#{this.HostName}-{this.ProjectName}");
+
+
+            if (this.ProjectName != null)
+            {
+                writer.WritePropertyName("project");
+                writer.WriteValue(this.ProjectName);
+            }
+
+            if (this.Release != null)
+            {
+                writer.WritePropertyName("release");
+                writer.WriteValue(this.Release);
+            }
+        }
 	}
 }
