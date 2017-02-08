@@ -3,9 +3,10 @@ using System.IO;
 using System.Reflection;
 using System.Security.Cryptography;
 
-namespace Scanner
+
+namespace Blackduck.Hub
 {
-    class Program
+    class Scanner
     {
         private static readonly SHA1Cng sha1 = new SHA1Cng();
 
