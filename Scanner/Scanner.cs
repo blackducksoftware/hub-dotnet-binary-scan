@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Security.Cryptography;
 
 using System.Linq;
-
 namespace Blackduck.Hub
 {
     static class Scanner
@@ -22,7 +21,6 @@ namespace Blackduck.Hub
         static void Main(string[] args)
         {
 
-
             if (args.Length < 1 || string.IsNullOrWhiteSpace(args[0]))
             {
                 Console.WriteLine("Argument required. Whaddaya want me to scan?");
@@ -35,7 +33,6 @@ namespace Blackduck.Hub
 
             ScannerJsonBuilder builder = ScannerJsonBuilder.NewInstance();
 
-
             Assembly targetAssembly = Assembly.LoadFile(target);
             Console.WriteLine(targetAssembly.GetName().Name + " " + targetAssembly.GetName().GetPublicKey());
 
@@ -45,17 +42,17 @@ namespace Blackduck.Hub
             builder.AddDirectory(targetAssembly.GetName().Name, new FileInfo(target).FullName);
 
             //The files already scanned
-            ISet<String> scannedPaths = new HashSet<String>();
+            ISet<string> scannedPaths = new HashSet<string>();
             //The files found that need scanning
             Queue<AssemblyName> assembliesToScan = new Queue<AssemblyName>();
-
+            //... Starting with the assemblies referenced from the one we're scanning
             assembliesToScan.EnqueueAll(targetAssembly.GetReferencedAssemblies());
 
             while (assembliesToScan.Count > 0)
             {
                 AssemblyName refAssemblyName = assembliesToScan.Dequeue();
                 Assembly refAssembly = Assembly.Load(refAssemblyName);
-                String path = Path.GetFullPath(refAssembly.Location);
+                string path = Path.GetFullPath(refAssembly.Location);
                 if (scannedPaths.Contains(path))
                     continue;
 
@@ -64,9 +61,9 @@ namespace Blackduck.Hub
                     scannedPaths.Add(path);
                     //Note the file informatoin
                     FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(path);
-                    String name = string.IsNullOrWhiteSpace(fvi.ProductName) ? refAssembly.GetName().Name : fvi.ProductName;
+                    string name = string.IsNullOrWhiteSpace(fvi.ProductName) ? refAssembly.GetName().Name : fvi.ProductName;
                     //We'll make our file names more descriptive than just the actual file name.
-                    String fileName = ($"{Path.GetFileName(path)} - {name}[{fvi.ProductVersion}]");
+                    string fileName = ($"{Path.GetFileName(path)} - {name}[{fvi.ProductVersion}]");
                     Console.WriteLine(fileName);
 
                     if (!string.IsNullOrWhiteSpace(path))
@@ -77,7 +74,16 @@ namespace Blackduck.Hub
 
                     assembliesToScan.EnqueueAll(refAssembly.GetReferencedAssemblies());
 
-
+                    var pInvokePaths = PInvokeSearcher.findPInvokePaths(refAssembly);
+                    foreach (string nativeDllPath in pInvokePaths.FoundPaths.Where(fp => !scannedPaths.Contains(fp)))
+                    {
+                        FileVersionInfo dllVersionInfo = FileVersionInfo.GetVersionInfo(nativeDllPath);
+                        String dllFileName = ($"{Path.GetFileName(nativeDllPath)} - {dllVersionInfo.ProductName}[{dllVersionInfo.ProductVersion}]");
+                        Console.WriteLine("NATIVE: " + dllFileName);
+                        builder.AddFile(dllFileName, nativeDllPath, new FileInfo(nativeDllPath).Length, computeSha1(nativeDllPath));
+                        scannedPaths.Add(nativeDllPath);
+                    }
+                    
                 }
                 catch (FileNotFoundException e)
                 {
@@ -96,7 +102,7 @@ namespace Blackduck.Hub
 
         }
 
-        private static String computeSha1(String path)
+        private static string computeSha1(string path)
         {
             using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read))
             {
