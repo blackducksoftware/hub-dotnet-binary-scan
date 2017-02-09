@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Security.Cryptography;
 
 using System.Linq;
-
 namespace Blackduck.Hub
 {
 	static class Scanner
@@ -81,14 +80,26 @@ namespace Blackduck.Hub
 						assembliesToScan.EnqueueAll(refAssembly.GetReferencedAssemblies());
 
 
+					var pInvokePaths = PInvokeSearcher.findPInvokePaths(refAssembly);
+					foreach (string nativeDllPath in pInvokePaths.FoundPaths.Where(fp => !scannedPaths.Contains(fp)))
+					{
+						FileVersionInfo dllVersionInfo = FileVersionInfo.GetVersionInfo(nativeDllPath);
+						String dllFileName = ($"{Path.GetFileName(nativeDllPath)} - {dllVersionInfo.ProductName}[{dllVersionInfo.ProductVersion}]");
+						string sha1 = computeSha1(nativeDllPath);
+						if (!string.Equals(Blacklist.Instance.Contains(sha1), dllFileName))
+						{
+							Console.WriteLine("NATIVE: " + dllFileName);
+							builder.AddFile(dllFileName, nativeDllPath, new FileInfo(nativeDllPath).Length, sha1);
+						}
+						scannedPaths.Add(nativeDllPath);
+					}
+
 				}
 				catch (FileNotFoundException e)
 				{
 					Console.Error.WriteLine(e.Message);
 				}
-
 			}
-
 
 			if (args.Length < 2)
 				builder.Write(Console.Out);
@@ -97,7 +108,7 @@ namespace Blackduck.Hub
 					builder.Write(fileWriter);
 				}
 
-		}
+		}	
 
 		private static String computeSha1(String path)
 		{
