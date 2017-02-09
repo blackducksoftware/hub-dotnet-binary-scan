@@ -94,6 +94,7 @@
     <Compile Include="PInvokeSearcher.cs" />
     <Compile Include="Scanner.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Blacklist.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -117,6 +118,9 @@
       <Project>{80A47BE1-22F6-480B-8021-C8A731BF2F63}</Project>
       <Name>ScannerJson</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="dll_blacklist.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

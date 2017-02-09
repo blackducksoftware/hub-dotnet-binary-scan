@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Scanner")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("Blackduck Hub .Net Runtime Scanner")]
+[assembly: AssemblyDescription("Scans .Net executables to determine their dependency tree for use with the Blackduck Hub.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Scanner")]
-[assembly: AssemblyCopyright("Copyright ©  2017")]
+[assembly: AssemblyCompany("Blackduck Software, Inc")]
+[assembly: AssemblyProduct("Blackduck Hub .Net Runtime Scanner")]
+[assembly: AssemblyCopyright("Copyright © 2017 Blackduck Software, Inc.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
