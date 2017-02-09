@@ -5,9 +5,6 @@ using System.Reflection;
 
 namespace Blackduck.Hub
 {
-
-
-
 	public class Blacklist
 	{
 		private static Lazy<Blacklist> instance = new Lazy<Blacklist>(() => new Blacklist());
