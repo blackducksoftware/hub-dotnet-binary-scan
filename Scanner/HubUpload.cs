@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Web;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,30 +17,39 @@ namespace Blackduck.Hub
 
 		public static void UploadScan(string baseUrl, string username, string password, ScannerJsonBuilder scanResult)
 		{
-			IEnumerable<string> authCookies = authenticate(baseUrl, username, password);
+			IEnumerable<Cookie> authCookies = authenticate(baseUrl, username, password);
+			//Prepare the cookies
+			//Ensure no trailing slash
+			var cookieContainer = new CookieContainer();
+			var cookieBaseUri = new Uri(baseUrl.EndsWith("/") ? baseUrl.Substring(0, baseUrl.Length - 1) : baseUrl);
+
+			foreach (Cookie authCookie in authCookies)
+				cookieContainer.Add(cookieBaseUri, authCookie);
 
 			string requestUrl = $"{(baseUrl.EndsWith("/") ? baseUrl : baseUrl + "/")}{UPLOAD_URI}";
-			HttpWebRequest uploadRequest = (HttpWebRequest)HttpWebRequest.Create(requestUrl);
-			uploadRequest.Method = "POST";
 
 
-			foreach (string authCookie in authCookies)
+			var clientHandler = new HttpClientHandler() { CookieContainer = cookieContainer };
+			var httpClient = new HttpClient(clientHandler);
+
+			var content = new MultipartFormDataContent();
+
+
+			using (var ms = new MemoryStream())
+			using (var writer = new StreamWriter(ms))
 			{
-				uploadRequest.Headers.Add(HttpRequestHeader.Cookie, authCookie);
-			}
+				scanResult.Write(writer);
+				var streamContent = new ByteArrayContent(ms.ToArray());
+				streamContent.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
+				content.Add(streamContent, "file", "scan.json");
 
-			uploadRequest.ContentType = "multipart/form-data; boundary=----SCAN_UPLOADrfoy1iy3n41oui3dyn14oius4hn";
+				var response = httpClient.PostAsync(requestUrl, content);
+				Task.WaitAll(response);
 
-				
-			using (var outWriter = new StreamWriter(uploadRequest.GetRequestStream()))
-			{
-				scanResult.Write(outWriter);
-			}
-
-			HttpWebResponse response = (HttpWebResponse)uploadRequest.GetResponse();
-			if (response.StatusCode != HttpStatusCode.OK)
-			{
-				throw new Exception($"Unable to upload to hub. Status code: {response.StatusCode}");
+				if (response.Result.StatusCode != HttpStatusCode.OK && response.Result.StatusCode != HttpStatusCode.Created)
+				{
+					throw new Exception($"Unable to upload to hub. Status code: {response.Result.StatusCode}. {response.Result.ReasonPhrase}");
+				}
 			}
 
 		}
@@ -52,34 +61,39 @@ namespace Blackduck.Hub
 		/// <param name="username"></param>
 		/// <param name="password"></param>
 		/// <returns></returns>
-		private static IEnumerable<string> authenticate(string baseUrl, string username, string password)
+		private static IEnumerable<Cookie> authenticate(string baseUrl, string username, string password)
 		{
 			string requestUrl = $"{(baseUrl.EndsWith("/") ? baseUrl : baseUrl + "/")}{AUTH_URI}";
-			HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(requestUrl);
-			request.Method = "POST";
-			request.ContentType = "application/x-www-form-urlencoded";
-
 
 			StringBuilder formData = new StringBuilder();
 			formData.Append("j_username=" + HttpUtility.UrlEncode(username));
-			formData.Append("&j_password="+HttpUtility.UrlEncode(password));
+			formData.Append("&j_password=" + HttpUtility.UrlEncode(password));
 			byte[] requestData = Encoding.ASCII.GetBytes(formData.ToString());
 
-			using (var stream = request.GetRequestStream())
-				stream.Write(requestData, 0, requestData.Length);
+			HttpContent content = new ByteArrayContent(requestData);
+			content.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/x-www-form-urlencoded");
 
-			HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+			var requestTask = new HttpClient().PostAsync(requestUrl, content);
+			Task.WaitAll(requestTask);
+
+			var response = requestTask.Result;
+
+
 			if (response.StatusCode != HttpStatusCode.NoContent && response.StatusCode != HttpStatusCode.OK)
 			{
-				throw new Exception("Unable to authenticate into " + baseUrl);
+				throw new Exception($"Unable to authenticate into {baseUrl}. {response.ReasonPhrase} ({response.StatusCode})");
 			}
 
-			string[] cookies = response.Headers.GetValues("Set-Cookie");
-			var cleansedCookies = new List<string>(cookies.Length);
+			IEnumerable<string> cookies;
+			if (!response.Headers.TryGetValues("Set-Cookie", out cookies))
+				cookies = Enumerable.Empty<string>();
+
+			var cleansedCookies = new List<Cookie>();
 			foreach (string cookie in cookies.Where(c => !string.IsNullOrEmpty(c)))
 			{
 				string cleansedCookie = string.Join(";", cookie.Split(';').Where(c => !c.StartsWith("Path=")));
-				cleansedCookies.Add(cleansedCookie);
+				string[] cookieParts = cleansedCookie.Split('=');
+				cleansedCookies.Add(new Cookie(cookieParts[0], cookieParts[1]));
 			}
 			return cleansedCookies;
 		}
