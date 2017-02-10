@@ -26,7 +26,7 @@ namespace Blackduck.Hub
 		public String ScannerVersion { private get; set; } = "0.0.0.0";
 		public String SignatureVersion { private get; set; } = "7.0.0";
         public String HostName { private get; set; } = System.Environment.MachineName;
-        public String ProjectName { private get; set; }
+        public String ProjectName { get; set; }
 		public String Release { private get; set; }
 
 		private Node getCurrentDir()
