@@ -48,6 +48,7 @@ namespace Blackduck.Hub
 			//For each reference, get the assembly that contains that reference, so we can look for DLLs at the parent's location.
 			var assembliesToScan = new Queue<Tuple<AssemblyName, Assembly>>();
 
+            assembliesToScan.Enqueue(Tuple.Create(targetAssembly.GetName(), targetAssembly));
 			assembliesToScan.EnqueueAll(targetAssembly.GetReferencedAssemblies().Select(assemblyName => Tuple.Create(assemblyName, targetAssembly)));
 
 			while (assembliesToScan.Count > 0)
