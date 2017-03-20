@@ -26,7 +26,9 @@ password=mypassword
 ```
 
 Then, just run 
+```
 scanner.exe "C:\Program Files\MyApp\App.exe"
+```
 
 The use of a configuration file allows for easy deploymen of the scanner to various machines where .Net applications may be running without having to configure the hub location on each one.
 
