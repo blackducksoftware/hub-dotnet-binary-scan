@@ -1,7 +1,7 @@
 ![Black Duck Logo](https://cloud.githubusercontent.com/assets/7320197/24118398/06a04b52-0d84-11e7-81ce-9e79adb2532f.png)
 # Hub Binary Scanner for .Net
 ## Overview
-The Hub .Net Binary Scanner allows you to scan .Net executables and libraries in their production environments for known vulnerabilities. It does not require access to source code, project files, or other metadata.
+The Hub .Net Binary Scanner allows you to scan .Net executables and libraries in their production environments for known vulnerabilities. It does not require access to source code, project files, or other metadata. A full installation of [Black Duck Hub](https://www.blackducksoftware.com/products/hub) is required to obtain the vulnerability report.
 
 ## How it works
 Unlike binary files on many platforms, .NET assemblies (.exe and .dll) files can be examined to determine what other assemblies they reference. Those in turn can be examined to see what assemblies they reference, all the way down to the class libraries of .Net itself. Which is important, because the .Net runtime itself could be open-source, and it will be even more important in the future, as Microsoft and the .Net foundation work to create a single, standardized, open-source library across all the runtimes. Thus, every .Net application will have open-source dependencies that can have vulnerabilities, and those dependencies will not be in the metadata scanned by the current Nuget/msbuild integration.
