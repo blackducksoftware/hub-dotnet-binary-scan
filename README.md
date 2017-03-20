@@ -30,7 +30,7 @@ scanner.exe "C:\Program Files\MyApp\App.exe"
 
 The use of a configuration file allows for easy deploymen of the scanner to various machines where .Net applications may be running without having to configure the hub location on each one.
 
-__Caution:__ Storing the password in cleartext, as above, is an obvious security risk, and something [we plan to remedy](https://github.com/blackducksoftware/hub-dotnet-binary-scan/issues/2). Until then, use a sufficiently low-priveleged Hub acount for this feature or use the "Scan to File" instructions below to use the scanner without storing a Hub password. 
+__Caution:__ Storing the password in cleartext, as above, is an obvious security risk, and something [we plan to remedy](https://github.com/blackducksoftware/hub-dotnet-binary-scan/issues/2). Until then, use a sufficiently low-priveleged Hub acount for this feature or follow the "Scan to File" instructions below to use the scanner without storing a Hub password. 
 
 ### Scan to File
 If the machine containing the application to be scanned cannot reach the hub due to network configuration or other issues, the scanner can produce a standard scanner JSON file that can be uploaded to the Hub via the UI. To produce a scanner file, run
