@@ -53,7 +53,11 @@ namespace Blackduck.Hub
 			var cookieBaseUri = new Uri(baseUrl.EndsWith("/") ? baseUrl.Substring(0, baseUrl.Length - 1) : baseUrl);
 
 			foreach (Cookie authCookie in authCookies)
+			{
+				//Remove the Path element from the cookie value, if present.
+				authCookie.Value = string.Join(";", authCookie.Value.Split(';').Where(val => !val.TrimStart().StartsWith("Path")));
 				cookieContainer.Add(cookieBaseUri, authCookie);
+			}
 
 			string requestUrl = $"{(baseUrl.EndsWith("/") ? baseUrl : baseUrl + "/")}{UPLOAD_URI}";
 
