@@ -142,7 +142,7 @@ namespace Blackduck.Hub
 					string fileName = Path.GetFileName(path);
 					//We'll make our file names more descriptive than just the actual file name.
 					string fileEntry = ($"{fileName} - {name}[{fvi.ProductVersion}]");
-					Console.WriteLine(fileEntry);
+					Console.WriteLine("Found " + fileEntry);
 
 					bool blacklisted = false;
 					if (!string.IsNullOrWhiteSpace(path))
@@ -165,7 +165,7 @@ namespace Blackduck.Hub
 						string sha1 = computeSha1(nativeDllPath);
 						if (!string.Equals(Blacklist.Instance.Contains(sha1), dllFileName))
 						{
-							Console.WriteLine("NATIVE: " + dllFileName);
+							Console.WriteLine("Found native: " + dllFileName);
 							builder.AddFile(dllFileName, nativeDllPath, new FileInfo(nativeDllPath).Length, sha1);
 						}
 						scannedPaths.Add(nativeDllPath);
@@ -189,12 +189,5 @@ namespace Blackduck.Hub
 				return BitConverter.ToString(hash).Replace("-", "").ToLower();
 			}
 		}
-
-
-
 	}
-
-
-
-
 }

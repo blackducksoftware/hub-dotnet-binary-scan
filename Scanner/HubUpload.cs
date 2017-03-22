@@ -46,23 +46,13 @@ namespace Blackduck.Hub
 
 		public static void UploadScan(string baseUrl, string username, string password, ScannerJsonBuilder scanResult)
 		{
-			IEnumerable<Cookie> authCookies = authenticate(baseUrl, username, password);
+
 			//Prepare the cookies
-			//Ensure no trailing slash
-			var cookieContainer = new CookieContainer();
-			var cookieBaseUri = new Uri(baseUrl.EndsWith("/") ? baseUrl.Substring(0, baseUrl.Length - 1) : baseUrl);
+			CookieContainer authCookies = authenticate(baseUrl, username, password);
 
-			foreach (Cookie authCookie in authCookies)
-			{
-				//Remove the Path element from the cookie value, if present.
-				authCookie.Value = string.Join(";", authCookie.Value.Split(';').Where(val => !val.TrimStart().StartsWith("Path")));
-				cookieContainer.Add(cookieBaseUri, authCookie);
-			}
+			string requestUrl = $"{(baseUrl.EndsWith("/", StringComparison.Ordinal) ? baseUrl : baseUrl + "/")}{UPLOAD_URI}";
 
-			string requestUrl = $"{(baseUrl.EndsWith("/") ? baseUrl : baseUrl + "/")}{UPLOAD_URI}";
-
-
-			var clientHandler = new HttpClientHandler() { CookieContainer = cookieContainer };
+			var clientHandler = new HttpClientHandler() { CookieContainer = authCookies };
 			var httpClient = new HttpClient(clientHandler);
 
 			var content = new MultipartFormDataContent();
@@ -94,9 +84,9 @@ namespace Blackduck.Hub
 		/// <param name="username"></param>
 		/// <param name="password"></param>
 		/// <returns></returns>
-		private static IEnumerable<Cookie> authenticate(string baseUrl, string username, string password)
+		private static CookieContainer authenticate(string baseUrl, string username, string password)
 		{
-			string requestUrl = $"{(baseUrl.EndsWith("/") ? baseUrl : baseUrl + "/")}{AUTH_URI}";
+			string requestUrl = $"{(baseUrl.EndsWith("/", StringComparison.Ordinal) ? baseUrl : baseUrl + "/")}{AUTH_URI}";
 
 			StringBuilder formData = new StringBuilder();
 			formData.Append("j_username=" + HttpUtility.UrlEncode(username));
@@ -121,14 +111,20 @@ namespace Blackduck.Hub
 			if (!response.Headers.TryGetValues("Set-Cookie", out cookies))
 				cookies = Enumerable.Empty<string>();
 
-			var cleansedCookies = new List<Cookie>();
+			//Ensure no trailing slash
+			var cookieContainer = new CookieContainer();
+			var cookieBaseUri = new Uri(baseUrl.EndsWith("/", StringComparison.Ordinal) ? baseUrl.Substring(0, baseUrl.Length - 1) : baseUrl);
+
+
 			foreach (string cookie in cookies.Where(c => !string.IsNullOrEmpty(c)))
 			{
-				string cleansedCookie = string.Join(";", cookie.Split(';').Where(c => !c.StartsWith("Path=")));
-				string[] cookieParts = cleansedCookie.Split('=');
-				cleansedCookies.Add(new Cookie(cookieParts[0], cookieParts[1]));
+				if (cookie == null) continue;
+				string cleansedCookieValue = cookie.Substring(0, cookie.IndexOf(';'));
+				string[] split = cleansedCookieValue.Split(new char[] { '=' }, 2);
+				Cookie cleansedCookie = new Cookie(split[0], split[1]);
+				cookieContainer.Add(cookieBaseUri, cleansedCookie);
 			}
-			return cleansedCookies;
+			return cookieContainer;
 		}
 	}
 }
