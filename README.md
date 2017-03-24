@@ -8,7 +8,7 @@ The Hub .Net Binary Scanner allows you to scan .Net executables and libraries in
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ## Where can I get the latest release? ##
-The Hub .Net Binary Scanner is currently in a pre-release phase. See the Wiki for [instructions for how to build](https://github.com/blackducksoftware/hub-dotnet-binary-scan/wiki/Home#building).
+For now, pre-1.0 builds are manually published on the [Releases page](https://github.com/blackducksoftware/hub-dotnet-binary-scan/releases). For the latest and, hopefully, greatest code, see the Wiki for [instructions for how to build](https://github.com/blackducksoftware/hub-dotnet-binary-scan/wiki/Home#building).
 
 ## Documentation ##
 All documentation for the Hub .Net Binary Scanner can be found on the [project wiki](https://github.com/blackducksoftware/hub-dotnet-binary-scan/wiki/).
