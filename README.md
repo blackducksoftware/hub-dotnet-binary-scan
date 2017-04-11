@@ -8,7 +8,7 @@ The Hub .Net Binary Scanner allows you to scan .Net executables and libraries in
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Build status](https://ci.appveyor.com/api/projects/status/fhinl2akrxbchsqw?svg=true)](https://ci.appveyor.com/project/yevster/hub-dotnet-binary-scan)
 
 ## Where can I get the latest release? ##
-Releases published on the [Releases page](https://github.com/blackducksoftware/hub-dotnet-binary-scan/releases). Builds of the latest and, hopefully, greatest code, can be [grabbed from AppVeyor](https://ci.appveyor.com/project/yevster/hub-dotnet-binary-scan/build/artifacts). Alternatively, see the Wiki for [instructions for how to build it yourself](https://github.com/blackducksoftware/hub-dotnet-binary-scan/wiki/Home#building).
+Releases published on the [Releases page](https://github.com/blackducksoftware/hub-dotnet-binary-scan/releases). Builds of the latest and, hopefully, greatest code, can be [grabbed from AppVeyor](https://ci.appveyor.com/project/yevster/hub-dotnet-binary-scan/build/artifacts). Alternatively, see the Wiki for [instructions for how to build it yourself](https://github.com/blackducksoftware/hub-dotnet-binary-scan/wiki/Building).
 
 ## Documentation ##
 All documentation for the Hub .Net Binary Scanner can be found on the [project wiki](https://github.com/blackducksoftware/hub-dotnet-binary-scan/wiki/).
