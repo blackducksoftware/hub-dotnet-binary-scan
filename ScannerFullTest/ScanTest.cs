@@ -12,10 +12,10 @@ namespace Blackduck.Hub
     [TestClass]
     public class ScanTest
     {
-        private JObject scanOutputJson;
+        private static JObject scanOutputJson;
 
-        [TestInitialize]
-        public void DoScan()
+        [ClassInitialize]
+        public static void DoScan(TestContext context)
         {
             string tempProjectPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             DirectoryInfo tempProjectDirectory = Directory.CreateDirectory(tempProjectPath);
