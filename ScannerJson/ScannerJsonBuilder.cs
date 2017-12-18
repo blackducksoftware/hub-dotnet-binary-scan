@@ -80,23 +80,33 @@ namespace Blackduck.Hub
 			allNodes.Add(newDirectory);
 		}
 
-		/// <summary>
-		/// Logs a scan problem in the appropriate section of the scan file.
-		/// </summary>
-		/// <param name="problem">Problem.</param>
-		public void AddScanProblem(Exception e)
+        /// <summary>
+        /// Logs a scan problem in the appropriate section of the scan file.
+        /// </summary>
+        /// <param name="e">The exception resulting from the problem.</param>
+        public void AddScanProblem(Exception e)
 		{
-			var problemObjectInner = new JObject(
-				new JProperty("message", e.Message),
-				new JProperty("exceptionType", e.GetType().FullName),
-				new JProperty("stack", e.StackTrace)
-			);
-
-			var problemObjectTop = new JObject(
-			new JProperty("problem", problemObjectInner));
-
-			problemList.Add(problemObjectTop);
+            AddScanProblem(e.Message, e);
 		}
+
+        /// <summary>
+        /// Logs a scan problem in the appropriate section of the scan file.
+        /// </summary>
+        /// <param name="e">The exception resulting from the problem.</param>
+        /// <param name="message">A message describing the problem.</param>
+        public void AddScanProblem(string message, Exception e)
+        {
+            var problemObjectInner = new JObject(
+                new JProperty("message", message),
+                new JProperty("exceptionType", e.GetType().FullName),
+                new JProperty("stack", e.StackTrace)
+            );
+
+            var problemObjectTop = new JObject(
+            new JProperty("problem", problemObjectInner));
+
+            problemList.Add(problemObjectTop);
+        }
 
 		/// <summary>
 		/// Adds a file to the current directory.
