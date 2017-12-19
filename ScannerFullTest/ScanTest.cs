@@ -6,19 +6,23 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
-
+using System.Security.AccessControl;
 namespace Blackduck.Hub
 {
     [TestClass]
     public class ScanTest
     {
         private static JObject scanOutputJson;
+        private static DirectoryInfo tempProjectDirectory;
 
         [ClassInitialize]
         public static void DoScan(TestContext context)
         {
             string tempProjectPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            DirectoryInfo tempProjectDirectory = Directory.CreateDirectory(tempProjectPath);
+            DirectorySecurity directorySecurity = new DirectorySecurity();
+            directorySecurity.AddAccessRule(new FileSystemAccessRule("Users", FileSystemRights.FullControl, AccessControlType.Allow));
+
+            tempProjectDirectory = Directory.CreateDirectory(tempProjectPath, directorySecurity);
             AppDomain scanDomain = AppDomain.CreateDomain("Scanner Test Domain");
             try
             {
@@ -51,7 +55,7 @@ namespace Blackduck.Hub
             JToken strapUpFormsInfo = scanOutputJson.SelectToken("$.scanNodeList[?(@.name == 'StrapUp.Forms.dll - StrapUp.FormsPlugin.Abstractions[1.0.0.0]')]");
             Assert.IsNotNull(strapUpFormsInfo);
             Assert.AreEqual("FILE", strapUpFormsInfo["type"].ToString());
-            Assert.AreEqual("f4ef17258b2d39b116614df1dee17679d450a169", strapUpFormsInfo["signatures"]["FILE_SHA1"].ToString());
+            Assert.AreEqual("420ba22a708b4a1d5d8f6ea266c914cdbde8a75f", strapUpFormsInfo["signatures"]["FILE_SHA1"].ToString());
             Assert.AreEqual(JTokenType.Integer, strapUpFormsInfo["size"].Type);
             Assert.AreEqual("16384", strapUpFormsInfo["size"].ToString());
         }
@@ -79,11 +83,11 @@ namespace Blackduck.Hub
         public void TestScanProblemReporting()
         {
             var actualMessages = scanOutputJson.SelectTokens("scanProblemList..problem..message").Select(t => t.ToString()).ToList();
-            Assert.AreEqual(2, actualMessages.Count);
 
             var expectedMessages = new HashSet<String>() {
-                "Could not load file or assembly 'Xamarin.Forms.Core, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null' or one of its dependencies. The system cannot find the file specified.",
-                "Could not load file or assembly 'Xamarin.Forms.Xaml, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null' or one of its dependencies. The system cannot find the file specified."
+                $"Unable to examine Assembly 'Xamarin.Forms.Core' ({tempProjectDirectory.FullName + Path.DirectorySeparatorChar}Xamarin.Forms.Core.dll). It and its dependencies will be omitted. [FileNotFoundException: Could not load file or assembly 'Xamarin.Forms.Core, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null' or one of its dependencies. The system cannot find the file specified.]",
+                $"Unable to examine Assembly 'FormsPlugin.Iconize' ({tempProjectDirectory.FullName + Path.DirectorySeparatorChar}FormsPlugin.Iconize.dll). It and its dependencies will be omitted. [FileNotFoundException: Could not load file or assembly 'FormsPlugin.Iconize, Version=1.0.10.0, Culture=neutral, PublicKeyToken=null' or one of its dependencies. The system cannot find the file specified.]",
+                $"Unable to examine Assembly 'Xamarin.Forms.Xaml' ({tempProjectDirectory.FullName + Path.DirectorySeparatorChar}Xamarin.Forms.Xaml.dll). It and its dependencies will be omitted. [FileNotFoundException: Could not load file or assembly 'Xamarin.Forms.Xaml, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null' or one of its dependencies. The system cannot find the file specified.]"
             };
 
             var unexpectedMessages = actualMessages.Except(expectedMessages).ToList();

@@ -131,15 +131,16 @@ namespace Blackduck.Hub
 
             while (assembliesToScan.Count > 0)
             {
+                var assemblyQueueEntry = assembliesToScan.Dequeue();
+                AssemblyName refAssemblyName = assemblyQueueEntry.Item1;
+                Assembly parentAssembly = assemblyQueueEntry.Item2;
+
+
+                string parentAssemblyDirectory = Path.GetDirectoryName(parentAssembly.Location);
+                string targetLocation = Path.Combine(parentAssemblyDirectory, refAssemblyName.Name + ".dll");
+                
                 try
                 {
-                    var assemblyQueueEntry = assembliesToScan.Dequeue();
-                    AssemblyName refAssemblyName = assemblyQueueEntry.Item1;
-                    Assembly parentAssembly = assemblyQueueEntry.Item2;
-
-
-                    string parentAssemblyDirectory = Path.GetDirectoryName(parentAssembly.Location);
-                    string targetLocation = Path.Combine(parentAssemblyDirectory, refAssemblyName.Name + ".dll");
                     var refAssembly = File.Exists(targetLocation) ? Assembly.LoadFrom(targetLocation) : Assembly.Load(refAssemblyName);
 
                     String path = Path.GetFullPath(refAssembly.Location);
@@ -183,13 +184,10 @@ namespace Blackduck.Hub
                     }
 
                 }
-                catch (FileNotFoundException e)
+                catch (IOException e)
                 {
-                    builder.AddScanProblem(e);
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    string message = $"Unable to examine Assembly due to insufficient permissions: {target}. It and its dependencies will be omitted.";
+                    string message = $"Unable to examine Assembly '{refAssemblyName.Name}' ({targetLocation}). It and its dependencies will be omitted. [{e.GetType().Name}: {e.Message}]";
+                    builder.AddScanProblem(message, e);
                 }
             }
             return builder;
