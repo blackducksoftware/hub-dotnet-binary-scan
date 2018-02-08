@@ -30,7 +30,7 @@ namespace Blackduck.Hub
 
                 string executablePath = Path.Combine(tempProjectDirectory.FullName, "QuackHackAdmin.exe");
                 string outputFilePath = Path.Combine(tempProjectDirectory.FullName, "scanresult.json");
-                scanDomain.ExecuteAssembly("Scanner.exe", new string[] { executablePath, outputFilePath });
+                scanDomain.ExecuteAssembly("Scanner.exe", new string[] { executablePath, "-o", outputFilePath });
                 string scanResultJsonText = File.ReadAllText(outputFilePath);
                 Assert.IsFalse(string.IsNullOrWhiteSpace(scanResultJsonText));
                 //Construct the Json
