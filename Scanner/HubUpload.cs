@@ -36,6 +36,20 @@ using System.Threading.Tasks;
 
 namespace Blackduck.Hub
 {
+    class AuthResult
+    {
+        public CookieContainer AuthCookies { get; private set; }
+
+        public string CsrfToken { get; private set; }
+
+        public AuthResult(CookieContainer cookieContainer, string csrfToken)
+        {
+            this.AuthCookies = cookieContainer;
+            this.CsrfToken = csrfToken;
+        }
+
+    }
+
 	/// <summary>
 	/// Performs upload of generated scan data directly to the hub.
 	/// </summary>
@@ -43,12 +57,15 @@ namespace Blackduck.Hub
 	{
 		private const string UPLOAD_URI = "api/v1/scans/upload";
 		private const string AUTH_URI = "j_spring_security_check";
+        private const string CSRF_TOKEN_HEADER = "X-CSRF-TOKEN";
 
-		public static void UploadScan(string baseUrl, string username, string password, ScannerJsonBuilder scanResult)
+
+        public static void UploadScan(string baseUrl, string username, string password, ScannerJsonBuilder scanResult)
 		{
 
 			//Prepare the cookies
-			CookieContainer authCookies = authenticate(baseUrl, username, password);
+			var authResult = Authenticate(baseUrl, username, password);
+            CookieContainer authCookies = authResult.AuthCookies;
 
 			string requestUrl = $"{(baseUrl.EndsWith("/", StringComparison.Ordinal) ? baseUrl : baseUrl + "/")}{UPLOAD_URI}";
 
@@ -56,7 +73,6 @@ namespace Blackduck.Hub
 			var httpClient = new HttpClient(clientHandler);
 
 			var content = new MultipartFormDataContent();
-
 
 			using (var ms = new MemoryStream())
 			using (var writer = new StreamWriter(ms))
@@ -66,7 +82,8 @@ namespace Blackduck.Hub
 				streamContent.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
 				content.Add(streamContent, "file", "scan.json");
 
-				var response = httpClient.PostAsync(requestUrl, content);
+                content.Headers.Add(CSRF_TOKEN_HEADER, authResult.CsrfToken);
+                var response = httpClient.PostAsync(requestUrl, content);
 				Task.WaitAll(response);
 
 				if (response.Result.StatusCode != HttpStatusCode.OK && response.Result.StatusCode != HttpStatusCode.Created)
@@ -84,7 +101,7 @@ namespace Blackduck.Hub
 		/// <param name="username"></param>
 		/// <param name="password"></param>
 		/// <returns></returns>
-		private static CookieContainer authenticate(string baseUrl, string username, string password)
+		private static AuthResult Authenticate(string baseUrl, string username, string password)
 		{
 			string requestUrl = $"{(baseUrl.EndsWith("/", StringComparison.Ordinal) ? baseUrl : baseUrl + "/")}{AUTH_URI}";
 
@@ -110,6 +127,7 @@ namespace Blackduck.Hub
 			IEnumerable<string> cookies;
 			if (!response.Headers.TryGetValues("Set-Cookie", out cookies))
 				cookies = Enumerable.Empty<string>();
+            string csrfToken = response.Headers.GetValues(CSRF_TOKEN_HEADER).FirstOrDefault();
 
 			//Ensure no trailing slash
 			var cookieContainer = new CookieContainer();
@@ -124,7 +142,7 @@ namespace Blackduck.Hub
 				Cookie cleansedCookie = new Cookie(split[0], split[1]);
 				cookieContainer.Add(cookieBaseUri, cleansedCookie);
 			}
-			return cookieContainer;
+            return new AuthResult(cookieContainer, csrfToken);
 		}
 	}
 }

@@ -31,6 +31,10 @@ using System.IO;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Linq;
+using CommandLine;
+using CommandLine.Text;
+using System.Net;
+
 namespace Blackduck.Hub
 {
     static class Scanner
@@ -48,13 +52,23 @@ namespace Blackduck.Hub
             bool hubUpload = false;
             string username = null;
             string password = null;
-            if (args.Length < 1 || string.IsNullOrWhiteSpace(args[0]))
-            {
-                Console.Error.WriteLine("Arguments required: Scanner.exe <Path to Assembly to Scan> [<Output File>]");
-                return;
-            }
+            bool ignoreSsl = false;
+            string targetAssemblyPath = null;
+            string outputFile = null;
 
-            if (args.Length < 2)
+
+            ParserResult<Options> parseResult = CommandLine.Parser.Default.ParseArguments<Options>(args).WithNotParsed(result =>
+              {
+                  Console.Error.WriteLine("Invalid usage");
+                  Environment.Exit(1);
+              }).WithParsed(options =>
+              {
+                  ignoreSsl = options.IgnoreSslErrors;
+                  outputFile = options.OutputFile.FirstOrDefault();
+                  targetAssemblyPath = Path.GetFullPath(options.AssemblyToScan);
+              });
+
+            if (string.IsNullOrWhiteSpace(outputFile))
             {
                 //No output argument. Do we have a preconfigured hub instance?
                 if (Settings.Instance.Url != null)
@@ -73,22 +87,27 @@ namespace Blackduck.Hub
                 }
                 else
                 {
-                    Console.Error.WriteLine("No URL specified in configuration file. Exiting.");
-                    return;
+                    Console.Error.WriteLine("No URL specified in configuration file and no output file specified. Exiting.");
+                    Environment.Exit(1);
                 }
             }
 
+            if (ignoreSsl)
+            {
+                Console.WriteLine("SSL errors will be ignored.");
+                ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
+            }
 
-            string target = Path.GetFullPath(args[0]);
-            Console.WriteLine("Scanning " + target + "...");
+            Console.WriteLine("Scanning " + targetAssemblyPath + "...");
 
-            ScannerJsonBuilder builder = scanAssembly(target);
+
+            ScannerJsonBuilder builder = scanAssembly(targetAssemblyPath);
 
             if (hubUpload)
                 HubUpload.UploadScan(Settings.Instance.Url, username, password, builder);
             else
             {
-                using (var fileWriter = new StreamWriter(args[1], false))
+                using (var fileWriter = new StreamWriter(outputFile, false))
                 {
                     builder.Write(fileWriter);
                 }
@@ -138,7 +157,7 @@ namespace Blackduck.Hub
 
                 string parentAssemblyDirectory = Path.GetDirectoryName(parentAssembly.Location);
                 string targetLocation = Path.Combine(parentAssemblyDirectory, refAssemblyName.Name + ".dll");
-                
+
                 try
                 {
                     var refAssembly = File.Exists(targetLocation) ? Assembly.LoadFrom(targetLocation) : Assembly.Load(refAssemblyName);
